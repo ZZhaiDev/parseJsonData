@@ -8,8 +8,27 @@
 
 import UIKit
 
+struct Data: Decodable {
+    let destination_addresses: [String]?
+    let origin_addresses: [String]?
+    let rows: [Row]?
+}
+
+struct Row: Decodable {
+    let elements: [Element]?
+}
+
+struct Element: Decodable {
+    let duration: Duration?
+}
+
+struct Duration: Decodable {
+    let text: String?
+    let value: Int?
+}
+
+
 class ViewController: UIViewController {
-    
     let data = """
     {
         "destination_addresses" : [ "New York, NY, USA" ],
@@ -35,18 +54,27 @@ class ViewController: UIViewController {
     }
     """.data(using: .utf8)!
     
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         method1()
         method2()
-        
     }
     
+    
     fileprivate func method2(){
-        
+        do {
+            let data = try JSONDecoder().decode(Data.self, from: self.data)
+            guard let rows = data.rows else { return }
+            guard let row = rows.first else { return }
+            guard let elements = row.elements else { return }
+            guard let element = elements.first else { return }
+            guard let distance = element.duration else { return }
+            print(distance.text ?? "", distance.value ?? "")
+        } catch let jsonError {
+            print(jsonError)
+        }
     }
-
+    
     fileprivate func method1() {
         let json = try? JSONSerialization.jsonObject(with: data, options: [])
         if let dictionary = json as? [String: Any]{
